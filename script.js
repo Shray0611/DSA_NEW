@@ -188,6 +188,12 @@ function handleAttack(event) {
         event.target.classList.add("hit");
         targetGrid[row][col] = 2;
         shotResult.textContent = "Hit!";
+        
+        if (isShipDestroyed(targetGrid, row, col)) {
+            resetShipColor(targetGrid, targetGridElement);
+            shotResult.textContent = "Ship destroyed!";
+        }
+        
         if (checkWinCondition(targetGrid)) {
             alert(`${currentTurn} wins!`);
             resetGame();
@@ -201,6 +207,36 @@ function handleAttack(event) {
     } else {
         shotResult.textContent = "You've already fired at this location!";
         return;
+    }
+}
+
+function isShipDestroyed(grid, hitRow, hitCol) {
+    const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+    const shipCells = [[hitRow, hitCol]];
+    
+    for (let [dx, dy] of directions) {
+        let row = hitRow + dx;
+        let col = hitCol + dy;
+        
+        while (row >= 0 && row < gridSize && col >= 0 && col < gridSize && (grid[row][col] === 1 || grid[row][col] === 2)) {
+            shipCells.push([row, col]);
+            row += dx;
+            col += dy;
+        }
+    }
+    
+    return shipCells.every(([r, c]) => grid[r][c] === 2);
+}
+
+function resetShipColor(grid, gridElement) {
+    for (let row = 0; row < gridSize; row++) {
+        for (let col = 0; col < gridSize; col++) {
+            if (grid[row][col] === 2) {
+                const cell = gridElement.children[row * gridSize + col];
+                cell.classList.remove("hit");
+                cell.classList.add("destroyed");
+            }
+        }
     }
 }
 
@@ -227,6 +263,110 @@ function updateTurnDisplay() {
     }
     instruction.textContent = `${currentTurn}, click on the opponent's grid to fire.`;
 }
+// ... (previous code remains the same)
+
+function placeShip(gridArray, row, col, shipLength, isHorizontal, player) {
+    const gridElement = player === "Player1" ? player1GridElement : player2GridElement;
+    for (let i = 0; i < shipLength; i++) {
+        if (isHorizontal) {
+            gridArray[row][col + i] = { length: shipLength, hit: false };
+            gridElement.children[row * gridSize + (col + i)].classList.add("ship");
+        } else {
+            gridArray[row + i][col] = { length: shipLength, hit: false };
+            gridElement.children[(row + i) * gridSize + col].classList.add("ship");
+        }
+    }
+}
+
+// ... (other functions remain the same)
+
+function handleAttack(event) {
+    const targetGrid = currentTurn === "Player1" ? player2Grid : player1Grid;
+    const targetGridElement = currentTurn === "Player1" ? player2GridElement : player1GridElement;
+
+    const row = parseInt(event.target.dataset.row);
+    const col = parseInt(event.target.dataset.col);
+
+    if (targetGrid[row][col] && targetGrid[row][col].length) {
+        event.target.classList.add("hit");
+        targetGrid[row][col].hit = true;
+        shotResult.textContent = "Hit!";
+        
+        if (isShipDestroyed(targetGrid, row, col)) {
+            const shipLength = targetGrid[row][col].length;
+            resetShipColor(targetGrid, targetGridElement, shipLength);
+            shotResult.textContent = `${shipLength}-length ship destroyed!`;
+        }
+        
+        if (checkWinCondition(targetGrid)) {
+            alert(`${currentTurn} wins!`);
+            resetGame();
+            return;
+        }
+    } else if (targetGrid[row][col] === 0) {
+        event.target.classList.add("miss");
+        targetGrid[row][col] = -1;
+        shotResult.textContent = "Miss!";
+        switchTurn();
+    } else {
+        shotResult.textContent = "You've already fired at this location!";
+        return;
+    }
+}
+
+function isShipDestroyed(grid, hitRow, hitCol) {
+    const shipLength = grid[hitRow][hitCol].length;
+    const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+    const shipCells = [[hitRow, hitCol]];
+    
+    for (let [dx, dy] of directions) {
+        let row = hitRow + dx;
+        let col = hitCol + dy;
+        
+        while (row >= 0 && row < gridSize && col >= 0 && col < gridSize && 
+               grid[row][col] && grid[row][col].length === shipLength) {
+            shipCells.push([row, col]);
+            row += dx;
+            col += dy;
+        }
+    }
+    
+    return shipCells.every(([r, c]) => grid[r][c].hit);
+}
+
+function resetShipColor(grid, gridElement, shipLength) {
+    const colorClass = getShipColorClass(shipLength);
+    for (let row = 0; row < gridSize; row++) {
+        for (let col = 0; col < gridSize; col++) {
+            if (grid[row][col] && grid[row][col].length === shipLength && grid[row][col].hit) {
+                const cell = gridElement.children[row * gridSize + col];
+                cell.classList.remove("hit", "ship");
+                cell.classList.add(colorClass);
+            }
+        }
+    }
+}
+
+function getShipColorClass(shipLength) {
+    switch (shipLength) {
+        case 5: return "destroyed-red";
+        case 4: return "destroyed-blue";
+        case 3: return "destroyed-orange";
+        case 2: return "destroyed-green";
+        default: return "destroyed-gray";
+    }
+}
+
+function checkWinCondition(grid) {
+    for (let row of grid) {
+        for (let cell of row) {
+            if (cell && cell.length && !cell.hit) return false;
+        }
+    }
+    return true;
+}
+
+// ... (rest of the code remains the same)
 
 function resetGame() {
     player1GridElement.innerHTML = "";

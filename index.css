@@ -129,3 +129,18 @@ h1 {
     margin-bottom: 10px;
     color: #0077be;
 }
+.destroyed-red {
+    background-color: #ff0000;
+}
+.destroyed-blue {
+    background-color: #0000ff;
+}
+.destroyed-orange {
+    background-color: #ffa500;
+}
+.destroyed-green {
+    background-color: #00ff00;
+}
+.destroyed-gray {
+    background-color: #888888;
+}
