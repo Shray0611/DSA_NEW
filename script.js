@@ -425,3 +425,4 @@ startButton.addEventListener("click", () => {
     currentShipLength = shipLengths[0];
     updateShipPreview();
 });
+//completed
