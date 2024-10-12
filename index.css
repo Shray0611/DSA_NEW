@@ -144,3 +144,9 @@ h1 {
 .destroyed-gray {
     background-color: #888888;
 }
+
+
+.sunk {
+    background-color: #8B0000;
+    /* Dark red color for sunk ships */
+}
