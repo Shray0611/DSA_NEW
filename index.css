@@ -1,0 +1,131 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f0f8ff;
+    padding: 20px;
+}
+
+.game-container {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    max-width: 1000px;
+}
+
+.grid-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(10, 30px);
+    grid-template-rows: repeat(10, 30px);
+    gap: 1px;
+    background-color: #0077be;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.cell {
+    width: 30px;
+    height: 30px;
+    background-color: #87ceeb;
+    border: 1px solid #4682b4;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.cell:hover {
+    background-color: #b0e0e6;
+}
+
+.cell.ship {
+    background-color: #808080;
+}
+
+.cell.hit {
+    background-color: #ff4136;
+    position: relative;
+}
+
+.cell.hit::after {
+    content: '✖';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 20px;
+}
+
+.cell.miss {
+    background-color: #ffffff;
+    position: relative;
+}
+
+.cell.miss::after {
+    content: '•';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #0077be;
+    font-size: 30px;
+}
+
+.disabled {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+#start-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#start-button:hover {
+    background-color: #45a049;
+}
+
+#turn-indicator,
+#shot-result,
+#instruction {
+    margin-top: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+}
+
+#shot-result {
+    color: #0077be;
+}
+
+#instruction {
+    color: #333;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+h1 {
+    color: #0077be;
+    text-align: center;
+}
+
+.player-label {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #0077be;
+}
