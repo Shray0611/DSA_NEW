@@ -10,7 +10,7 @@ let player1Grid = [];
 let player2Grid = [];
 let currentTurn = "Player1";
 
-let shipLengths = [4, 3, 3, 2];
+let shipLengths = [5, 4, 3, 3, 2];
 let isHorizontal = true;
 let currentShipLength = 0;
 
@@ -89,11 +89,11 @@ function placeShip(gridArray, row, col, shipLength, isHorizontal, player) {
     let shipCells = [];
     for (let i = 0; i < shipLength; i++) {
         if (isHorizontal) {
-            gridArray[row][col + i] = 1;
+            gridArray[row][col + i] = { length: shipLength, hit: false };
             gridElement.children[row * gridSize + (col + i)].classList.add("ship");
             shipCells.push({ row: row, col: col + i });
         } else {
-            gridArray[row + i][col] = 1;
+            gridArray[row + i][col] = { length: shipLength, hit: false };
             gridElement.children[(row + i) * gridSize + col].classList.add("ship");
             shipCells.push({ row: row + i, col: col });
         }
@@ -147,24 +147,30 @@ function hideShipPreview() {
 
 function finishPlayerPlacement(player) {
     if (player === "Player1") {
+        hideShips(player1GridElement);
         currentTurn = "Player2";
         turnIndicator.textContent = `${currentTurn}'s Turn`;
         instruction.textContent = "Player 2, place your ships on the grid. Press 'R' to rotate.";
-        shipLengths = [4, 3, 3, 2];
-        currentShipLength = 4;
+        shipLengths = [5, 4, 3, 3, 2];
+        currentShipLength = 5;
         player1GridElement.removeEventListener("click", player1ShipPlacementHandler);
         player2GridElement.classList.remove("disabled");
         player2GridElement.addEventListener("click", player2ShipPlacementHandler);
         updateShipPreview();
     } else {
+        hideShips(player2GridElement);
         startGame();
     }
 }
 
-function startGame() {
-    hideShips(player1GridElement);
-    hideShips(player2GridElement);
+function hideShips(gridElement) {
+    const cells = gridElement.getElementsByClassName("cell");
+    for (let cell of cells) {
+        cell.classList.remove("ship");
+    }
+}
 
+function startGame() {
     player2GridElement.classList.remove("disabled");
     player1GridElement.classList.add("disabled");
     currentTurn = "Player1";
@@ -180,121 +186,10 @@ function startGame() {
     player1GridElement.addEventListener("click", handleAttack);
 }
 
-function hideShips(gridElement) {
-    const cells = gridElement.getElementsByClassName("cell");
-    for (let cell of cells) {
-        cell.classList.remove("ship");
-    }
-}
-
 function handleAttack(event) {
     const targetGrid = currentTurn === "Player1" ? player2Grid : player1Grid;
     const targetGridElement = currentTurn === "Player1" ? player2GridElement : player1GridElement;
     const targetPlayer = currentTurn === "Player1" ? "Player2" : "Player1";
-
-    const row = parseInt(event.target.dataset.row);
-    const col = parseInt(event.target.dataset.col);
-
-    if (targetGrid[row][col] === 1) {
-        event.target.classList.add("hit");
-        targetGrid[row][col] = 2;
-        shotResult.textContent = "Hit!";
-
-        // Color the entire ship when hit
-        const hitShip = findShip(targetPlayer, row, col);
-        if (hitShip) {
-            colorShip(targetGridElement, hitShip, "ship-hit");
-        }
-
-        // Check if the ship is completely sunk
-        const sunkShip = checkSunkShip(targetPlayer, row, col);
-        if (sunkShip) {
-            shotResult.textContent = `Hit! You've sunk a ship of length ${sunkShip.length}!`;
-            colorShip(targetGridElement, sunkShip, "sunk");
-        }
-
-        if (checkWinCondition(targetGrid)) {
-            alert(`${currentTurn} wins!`);
-            resetGame();
-            return;
-        }
-    } else if (targetGrid[row][col] === 0) {
-        event.target.classList.add("miss");
-        targetGrid[row][col] = 3;
-        shotResult.textContent = "Miss!";
-        switchTurn();
-    } else {
-        shotResult.textContent = "You've already fired at this location!";
-        return;
-    }
-
-    updateTurnDisplay();
-}
-
-function findShip(player, hitRow, hitCol) {
-    return shipPositions[player].find(ship =>
-        ship.some(cell => cell.row === hitRow && cell.col === hitCol)
-    );
-}
-
-function colorShip(gridElement, ship, className) {
-    for (let cell of ship) {
-        gridElement.children[cell.row * gridSize + cell.col].classList.add(className);
-    }
-}
-
-function checkSunkShip(player, hitRow, hitCol) {
-    const ship = findShip(player, hitRow, hitCol);
-    if (ship) {
-        const grid = player === "Player1" ? player1Grid : player2Grid;
-        if (ship.every(cell => grid[cell.row][cell.col] === 2)) {
-            return ship;
-        }
-    }
-    return null;
-}
-
-function switchTurn() {
-    currentTurn = currentTurn === "Player1" ? "Player2" : "Player1";
-    player1GridElement.classList.toggle("disabled");
-    player2GridElement.classList.toggle("disabled");
-}
-
-function updateTurnDisplay() {
-    turnIndicator.textContent = `${currentTurn}'s Turn`;
-    instruction.textContent = `It's ${currentTurn}'s turn to attack.`;
-}
-
-function checkWinCondition(grid) {
-    for (let row = 0; row < gridSize; row++) {
-        for (let col = 0; col < gridSize; col++) {
-            if (grid[row][col] === 1) {
-                return false; // There's still an unhit ship
-            }
-        }
-    }
-    return true; // All ships have been hit
-}
-// ... (previous code remains the same)
-
-function placeShip(gridArray, row, col, shipLength, isHorizontal, player) {
-    const gridElement = player === "Player1" ? player1GridElement : player2GridElement;
-    for (let i = 0; i < shipLength; i++) {
-        if (isHorizontal) {
-            gridArray[row][col + i] = { length: shipLength, hit: false };
-            gridElement.children[row * gridSize + (col + i)].classList.add("ship");
-        } else {
-            gridArray[row + i][col] = { length: shipLength, hit: false };
-            gridElement.children[(row + i) * gridSize + col].classList.add("ship");
-        }
-    }
-}
-
-// ... (other functions remain the same)
-
-function handleAttack(event) {
-    const targetGrid = currentTurn === "Player1" ? player2Grid : player1Grid;
-    const targetGridElement = currentTurn === "Player1" ? player2GridElement : player1GridElement;
 
     const row = parseInt(event.target.dataset.row);
     const col = parseInt(event.target.dataset.col);
@@ -324,6 +219,8 @@ function handleAttack(event) {
         shotResult.textContent = "You've already fired at this location!";
         return;
     }
+
+    updateTurnDisplay();
 }
 
 function isShipDestroyed(grid, hitRow, hitCol) {
@@ -369,6 +266,17 @@ function getShipColorClass(shipLength) {
     }
 }
 
+function switchTurn() {
+    currentTurn = currentTurn === "Player1" ? "Player2" : "Player1";
+    player1GridElement.classList.toggle("disabled");
+    player2GridElement.classList.toggle("disabled");
+}
+
+function updateTurnDisplay() {
+    turnIndicator.textContent = `${currentTurn}'s Turn`;
+    instruction.textContent = `It's ${currentTurn}'s turn to attack.`;
+}
+
 function checkWinCondition(grid) {
     for (let row of grid) {
         for (let cell of row) {
@@ -378,15 +286,13 @@ function checkWinCondition(grid) {
     return true;
 }
 
-// ... (rest of the code remains the same)
-
 function resetGame() {
     player1GridElement.innerHTML = "";
     player2GridElement.innerHTML = "";
     player1Grid = [];
     player2Grid = [];
-    shipLengths = [4, 3, 3, 2];
-    currentShipLength = 4;
+    shipLengths = [5, 4, 3, 3, 2];
+    currentShipLength = 5;
     currentTurn = "Player1";
     isHorizontal = true;
     shotResult.textContent = "";
@@ -425,4 +331,3 @@ startButton.addEventListener("click", () => {
     currentShipLength = shipLengths[0];
     updateShipPreview();
 });
-//completed
